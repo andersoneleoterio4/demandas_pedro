@@ -64,7 +64,7 @@
 
     <script>
       const API =
-        "https://script.google.com/macros/s/AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr/exec";
+        "https://script.google.com/macros/s/AKfycbyhHEaUjqv7af2b6mH7pU5r1BhdKEo8waHzaBzQdBJGNAGWXslVooP0nQW8HKXrOTw/exec";
 
       const COLUNAS = [
         "cliente",
@@ -102,9 +102,25 @@
             throw new Error(`Erro HTTP ${resposta.status}`);
           }
 
-          const dados = await resposta.json();
+          const json = await resposta.json();
 
-          if (!Array.isArray(dados)) {
+          // A API pode responder com um array puro ou um objeto
+          // no formato { sucesso, dados, mensagem } / { erro }.
+          if (json && json.sucesso === false) {
+            throw new Error(json.mensagem || "A API retornou um erro.");
+          }
+
+          if (json && json.erro) {
+            throw new Error(json.erro);
+          }
+
+          const dados = Array.isArray(json)
+            ? json
+            : Array.isArray(json && json.dados)
+            ? json.dados
+            : null;
+
+          if (!dados) {
             throw new Error("Resposta da API em formato inesperado.");
           }
 
@@ -125,10 +141,13 @@
           );
         } catch (erro) {
           tbody.innerHTML = "";
-          definirMensagem(
-            `Não foi possível carregar os dados: ${erro.message}`,
-            true
-          );
+
+          const mensagemErro =
+            erro instanceof TypeError
+              ? "Não foi possível conectar à API. Verifique a conexão e se a implantação do Apps Script está com acesso para \"Qualquer pessoa\"."
+              : `Não foi possível carregar os dados: ${erro.message}`;
+
+          definirMensagem(mensagemErro, true);
           console.error("Falha ao carregar dados:", erro);
         }
       }

@@ -1,7 +1,6 @@
 Código de Implantação:
 
-AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr
+AKfycbyhHEaUjqv7af2b6mH7pU5r1BhdKEo8waHzaBzQdBJGNAGWXslVooP0nQW8HKXrOTw
 
 URL:
-https://script.google.com/macros/s/AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr/exec
-
+https://script.google.com/macros/s/AKfycbyhHEaUjqv7af2b6mH7pU5r1BhdKEo8waHzaBzQdBJGNAGWXslVooP0nQW8HKXrOTw/exec
