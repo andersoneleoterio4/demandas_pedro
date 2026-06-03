@@ -2,6 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Controle de Processos ANM</title>
 
     <style>
@@ -29,6 +30,15 @@
         padding: 5px 10px;
         cursor: pointer;
       }
+
+      #mensagem {
+        margin-top: 12px;
+        color: #555;
+      }
+
+      #mensagem.erro {
+        color: #c0392b;
+      }
     </style>
   </head>
 
@@ -50,31 +60,77 @@
       <tbody></tbody>
     </table>
 
+    <p id="mensagem"></p>
+
     <script>
       const API =
         "https://script.google.com/macros/s/AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr/exec";
 
+      const COLUNAS = [
+        "cliente",
+        "cnpjCpf",
+        "processoAnm",
+        "nup",
+        "demanda",
+        "status",
+      ];
+
+      function escaparHtml(valor) {
+        if (valor === null || valor === undefined) return "";
+        return String(valor)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function definirMensagem(texto, ehErro = false) {
+        const mensagem = document.getElementById("mensagem");
+        mensagem.textContent = texto;
+        mensagem.classList.toggle("erro", ehErro);
+      }
+
       async function carregarDados() {
-        const resposta = await fetch(API);
-
-        const dados = await resposta.json();
-
         const tbody = document.querySelector("#tabela tbody");
+        definirMensagem("Carregando dados...");
 
-        tbody.innerHTML = "";
+        try {
+          const resposta = await fetch(API);
 
-        dados.forEach((item) => {
-          tbody.innerHTML += `
+          if (!resposta.ok) {
+            throw new Error(`Erro HTTP ${resposta.status}`);
+          }
+
+          const dados = await resposta.json();
+
+          if (!Array.isArray(dados)) {
+            throw new Error("Resposta da API em formato inesperado.");
+          }
+
+          const linhas = dados
+            .map(
+              (item) => `
                 <tr>
-                    <td>${item.cliente}</td>
-                    <td>${item.cnpjCpf}</td>
-                    <td>${item.processoAnm}</td>
-                    <td>${item.nup}</td>
-                    <td>${item.demanda}</td>
-                    <td>${item.status}</td>
-                </tr>
-                `;
-        });
+                  ${COLUNAS.map(
+                    (coluna) => `<td>${escaparHtml(item[coluna])}</td>`
+                  ).join("")}
+                </tr>`
+            )
+            .join("");
+
+          tbody.innerHTML = linhas;
+          definirMensagem(
+            dados.length ? "" : "Nenhum registro encontrado."
+          );
+        } catch (erro) {
+          tbody.innerHTML = "";
+          definirMensagem(
+            `Não foi possível carregar os dados: ${erro.message}`,
+            true
+          );
+          console.error("Falha ao carregar dados:", erro);
+        }
       }
 
       carregarDados();
