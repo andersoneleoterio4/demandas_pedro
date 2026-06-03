@@ -464,10 +464,21 @@
           throw new Error(`Erro HTTP ${resposta.status}`);
         }
 
-        const json = await resposta.json();
+        const texto = await resposta.text();
+        let json;
+        try {
+          json = JSON.parse(texto);
+        } catch {
+          throw new Error("Resposta inválida da API.");
+        }
+
+        if (json && json.sucesso === false) {
+          throw new Error(json.mensagem || json.erro || "A API retornou um erro.");
+        }
         if (json && json.erro) {
           throw new Error(json.erro);
         }
+
         return json;
       }
 
@@ -567,9 +578,9 @@
         definirMensagem("Salvando...");
         try {
           if (id) {
-            await enviarAcao({ acao: "atualizar", cliente: { id, ...cliente } });
+            await enviarAcao({ acao: "atualizar", dados: { id, ...cliente } });
           } else {
-            await enviarAcao({ acao: "inserir", cliente });
+            await enviarAcao({ acao: "inserir", dados: cliente });
           }
           fecharModal();
           await carregarDados();
@@ -593,7 +604,7 @@
             if (!confirm("Tem certeza que deseja excluir este registro?")) return;
             definirMensagem("Excluindo...");
             try {
-              await enviarAcao({ acao: "excluir", id });
+              await enviarAcao({ acao: "excluir", dados: { id } });
               await carregarDados();
             } catch (erro) {
               definirMensagem(

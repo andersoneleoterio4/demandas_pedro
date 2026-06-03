@@ -92,27 +92,49 @@ function listarClientes() {
 // ===== Roteador de gravação (inserir / atualizar / excluir) =====
 function doPost(e) {
   try {
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error("Corpo da requisição ausente.");
+    }
+
     const body = JSON.parse(e.postData.contents);
     const acao = body.acao;
+    const dados = body.dados || body.cliente;
     let resultado;
+    let mensagem;
 
     switch (acao) {
       case "inserir":
-        resultado = inserirCliente(body.cliente);
+        if (!dados) throw new Error("Dados do registro não informados.");
+        resultado = inserirCliente(dados);
+        mensagem = "Registro inserido com sucesso.";
         break;
       case "atualizar":
-        resultado = atualizarCliente(body.cliente);
+        if (!dados || dados.id === undefined || dados.id === "") {
+          throw new Error("ID do registro não informado.");
+        }
+        resultado = atualizarCliente(dados);
+        if (!resultado) throw new Error("Registro não encontrado para atualização.");
+        mensagem = "Registro atualizado.";
         break;
       case "excluir":
-        resultado = excluirCliente(body.id);
+        const idExcluir =
+          dados && dados.id !== undefined
+            ? dados.id
+            : body.id;
+        if (idExcluir === undefined || idExcluir === "") {
+          throw new Error("ID do registro não informado.");
+        }
+        resultado = excluirCliente(idExcluir);
+        if (!resultado) throw new Error("Registro não encontrado para exclusão.");
+        mensagem = "Registro excluído.";
         break;
       default:
         throw new Error("Ação inválida: " + acao);
     }
 
-    return respostaJson({ sucesso: resultado });
+    return respostaJson({ sucesso: resultado, mensagem: mensagem });
   } catch (erro) {
-    return respostaJson({ erro: erro.message });
+    return respostaJson({ sucesso: false, mensagem: erro.message, erro: erro.message });
   }
 }
 
@@ -159,7 +181,7 @@ function atualizarCliente(cliente) {
   const dados = sheet.getDataRange().getValues();
 
   for (let i = 1; i < dados.length; i++) {
-    if (dados[i][0] == cliente.id) {
+    if (String(dados[i][0]) === String(cliente.id)) {
       sheet.getRange(i + 1, 2, 1, 9).setValues([valoresCliente(cliente)]);
       ordenarPlanilha(sheet);
       return true;
@@ -175,7 +197,7 @@ function excluirCliente(id) {
   const dados = sheet.getDataRange().getValues();
 
   for (let i = 1; i < dados.length; i++) {
-    if (dados[i][0] == id) {
+    if (String(dados[i][0]) === String(id)) {
       sheet.deleteRow(i + 1);
       return true;
     }
