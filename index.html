@@ -1,2 +1,82 @@
-const API =
-https://script.google.com/macros/s/AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr/exec;
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Controle de Processos ANM</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      button {
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Controle de Processos ANM</h2>
+
+    <table id="tabela">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>CNPJ/CPF</th>
+          <th>Processo ANM</th>
+          <th>NUP</th>
+          <th>Demanda</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+
+      <tbody></tbody>
+    </table>
+
+    <script>
+      const API = https://script.google.com/macros/s/AKfycbyUYe6AZkDjFZ2vKB__65DoCKPLg4ENYeiSSoTVDX1EsCV9j9pGF7nfPdSMLGRDTkdr/exec;
+
+      async function carregarDados() {
+        const resposta = await fetch(API);
+
+        const dados = await resposta.json();
+
+        const tbody = document.querySelector("#tabela tbody");
+
+        tbody.innerHTML = "";
+
+        dados.forEach((item) => {
+          tbody.innerHTML += `
+                <tr>
+                    <td>${item.cliente}</td>
+                    <td>${item.cnpjCpf}</td>
+                    <td>${item.processoAnm}</td>
+                    <td>${item.nup}</td>
+                    <td>${item.demanda}</td>
+                    <td>${item.status}</td>
+                </tr>
+                `;
+        });
+      }
+
+      carregarDados();
+    </script>
+  </body>
+</html>
