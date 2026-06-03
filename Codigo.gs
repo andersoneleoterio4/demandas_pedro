@@ -1,5 +1,9 @@
 // ===== Configuração =====
+// Ajuste para o nome EXATO da aba da sua planilha.
 const NOME_ABA = "Clientes";
+
+// Coluna usada para ordenação alfabética (2 = "Cliente", pois a coluna 1 é o id).
+const COLUNA_ORDENACAO = 2;
 
 function getSheet() {
   const sheet = SpreadsheetApp
@@ -19,6 +23,17 @@ function respostaJson(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function ordenarPlanilha(sheet) {
+  const ultimaColuna = sheet.getLastColumn();
+  const totalLinhas = sheet.getLastRow();
+
+  if (totalLinhas <= 2) return;
+
+  sheet
+    .getRange(2, 1, totalLinhas - 1, ultimaColuna)
+    .sort({ column: COLUNA_ORDENACAO, ascending: true });
+}
+
 // ===== Consulta (listar dados) =====
 function doGet() {
   try {
@@ -30,22 +45,45 @@ function doGet() {
 
 function listarClientes() {
   const sheet = getSheet();
+  ordenarPlanilha(sheet);
+
   const dados = sheet.getDataRange().getValues();
   const clientes = [];
 
   for (let i = 1; i < dados.length; i++) {
-    // Ignora linhas totalmente vazias
     if (dados[i].join("") === "") continue;
 
-    clientes.push({
-      id: dados[i][0],
-      cliente: dados[i][1],
-      cnpjCpf: dados[i][2],
-      processoAnm: dados[i][3],
-      nup: dados[i][4],
-      demanda: dados[i][5],
-      status: dados[i][6],
-    });
+    const linha = dados[i];
+    const formatoNovo = linha.length >= 10;
+
+    if (formatoNovo) {
+      clientes.push({
+        id: linha[0],
+        cliente: linha[1],
+        cnpjCpf: linha[2],
+        processoAnm: linha[3],
+        processoAnmLink: linha[4] || "",
+        nup: linha[5],
+        nupLink: linha[6] || "",
+        demanda: linha[7],
+        demandaLink: linha[8] || "",
+        status: linha[9],
+      });
+    } else {
+      // Compatível com planilhas no formato antigo (sem colunas de link).
+      clientes.push({
+        id: linha[0],
+        cliente: linha[1],
+        cnpjCpf: linha[2],
+        processoAnm: linha[3],
+        processoAnmLink: "",
+        nup: linha[4],
+        nupLink: "",
+        demanda: linha[5],
+        demandaLink: "",
+        status: linha[6],
+      });
+    }
   }
 
   return clientes;
@@ -78,20 +116,40 @@ function doPost(e) {
   }
 }
 
+function linhaCliente(cliente) {
+  return [
+    new Date().getTime(),
+    cliente.cliente || "",
+    cliente.cnpjCpf || "",
+    cliente.processoAnm || "",
+    cliente.processoAnmLink || "",
+    cliente.nup || "",
+    cliente.nupLink || "",
+    cliente.demanda || "",
+    cliente.demandaLink || "",
+    cliente.status || "",
+  ];
+}
+
+function valoresCliente(cliente) {
+  return [
+    cliente.cliente || "",
+    cliente.cnpjCpf || "",
+    cliente.processoAnm || "",
+    cliente.processoAnmLink || "",
+    cliente.nup || "",
+    cliente.nupLink || "",
+    cliente.demanda || "",
+    cliente.demandaLink || "",
+    cliente.status || "",
+  ];
+}
+
 // ===== Inserir Registro =====
 function inserirCliente(cliente) {
   const sheet = getSheet();
-
-  sheet.appendRow([
-    new Date().getTime(),
-    cliente.cliente,
-    cliente.cnpjCpf,
-    cliente.processoAnm,
-    cliente.nup,
-    cliente.demanda,
-    cliente.status,
-  ]);
-
+  sheet.appendRow(linhaCliente(cliente));
+  ordenarPlanilha(sheet);
   return true;
 }
 
@@ -102,13 +160,8 @@ function atualizarCliente(cliente) {
 
   for (let i = 1; i < dados.length; i++) {
     if (dados[i][0] == cliente.id) {
-      sheet.getRange(i + 1, 2).setValue(cliente.cliente);
-      sheet.getRange(i + 1, 3).setValue(cliente.cnpjCpf);
-      sheet.getRange(i + 1, 4).setValue(cliente.processoAnm);
-      sheet.getRange(i + 1, 5).setValue(cliente.nup);
-      sheet.getRange(i + 1, 6).setValue(cliente.demanda);
-      sheet.getRange(i + 1, 7).setValue(cliente.status);
-
+      sheet.getRange(i + 1, 2, 1, 9).setValues([valoresCliente(cliente)]);
+      ordenarPlanilha(sheet);
       return true;
     }
   }

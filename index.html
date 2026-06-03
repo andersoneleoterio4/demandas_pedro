@@ -6,38 +6,198 @@
     <title>Controle de Demandas</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: Arial, sans-serif;
-        margin: 20px;
+        margin: 0;
+        padding: 20px;
+        background: #f7f7f9;
+        color: #222;
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      .barra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .barra input[type="search"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        min-width: 220px;
+        flex: 1 1 220px;
+        max-width: 360px;
+      }
+
+      .tabela-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 640px;
       }
 
       th,
       td {
-        border: 1px solid #ccc;
-        padding: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 8px;
+        text-align: center;
+        vertical-align: middle;
+        word-break: break-word;
       }
 
       th {
-        background: #f0f0f0;
+        background: #34495e;
+        color: #fff;
+        position: sticky;
+        top: 0;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #f4f6f8;
+      }
+
+      td a {
+        color: #2563eb;
+        text-decoration: underline;
+        word-break: break-all;
       }
 
       button {
-        padding: 5px 10px;
+        padding: 6px 12px;
         cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+
+      .btn-primario {
+        background: #2563eb;
+        color: #fff;
+      }
+
+      .btn-editar {
+        background: #f0ad4e;
+        color: #fff;
+        margin-right: 4px;
+      }
+
+      .btn-excluir {
+        background: #c0392b;
+        color: #fff;
+      }
+
+      .acoes {
+        white-space: nowrap;
       }
 
       #mensagem {
         margin-top: 12px;
+        text-align: center;
         color: #555;
       }
 
       #mensagem.erro {
         color: #c0392b;
+      }
+
+      /* ===== Modal de formulário ===== */
+      .modal-fundo {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        z-index: 10;
+      }
+
+      .modal-fundo.aberto {
+        display: flex;
+      }
+
+      .modal {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        width: 100%;
+        max-width: 460px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal h3 {
+        margin-top: 0;
+        text-align: center;
+      }
+
+      .campo {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 12px;
+      }
+
+      .campo label {
+        font-size: 13px;
+        margin-bottom: 4px;
+        color: #555;
+      }
+
+      .campo input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      .campo-link {
+        margin-top: -6px;
+        margin-bottom: 12px;
+        padding-left: 8px;
+        border-left: 3px solid #2563eb;
+      }
+
+      .campo-link label {
+        color: #2563eb;
+      }
+
+      .campo-link input {
+        font-size: 13px;
+      }
+
+      .campo-link .dica {
+        font-size: 11px;
+        color: #888;
+        margin-top: 2px;
+      }
+
+      .modal-botoes {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .btn-cancelar {
+        background: #95a5a6;
+        color: #fff;
       }
     </style>
   </head>
@@ -45,22 +205,85 @@
   <body>
     <h2>Controle de Processos ANM</h2>
 
-    <table id="tabela">
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>CNPJ/CPF</th>
-          <th>Processo ANM</th>
-          <th>NUP</th>
-          <th>Demanda</th>
-          <th>Status</th>
-        </tr>
-      </thead>
+    <div class="barra">
+      <button id="btnAdicionar" class="btn-primario">+ Adicionar registro</button>
+      <input id="busca" type="search" placeholder="Buscar..." />
+    </div>
 
-      <tbody></tbody>
-    </table>
+    <div class="tabela-wrapper">
+      <table id="tabela">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>CNPJ/CPF</th>
+            <th>Processo ANM</th>
+            <th>NUP</th>
+            <th>Demanda</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody></tbody>
+      </table>
+    </div>
 
     <p id="mensagem"></p>
+
+    <!-- Modal de inserção / edição -->
+    <div id="modalFundo" class="modal-fundo">
+      <div class="modal">
+        <h3 id="modalTitulo">Adicionar registro</h3>
+        <form id="formRegistro">
+          <input type="hidden" id="campoId" />
+          <div class="campo">
+            <label for="campoCliente">Cliente</label>
+            <input id="campoCliente" required />
+          </div>
+          <div class="campo">
+            <label for="campoCnpjCpf">CNPJ/CPF</label>
+            <input id="campoCnpjCpf" />
+          </div>
+          <div class="campo">
+            <label for="campoProcessoAnm">Processo ANM</label>
+            <input id="campoProcessoAnm" placeholder="Texto ou número do processo" />
+          </div>
+          <div class="campo campo-link">
+            <label for="campoProcessoAnmLink">Link do Processo ANM</label>
+            <input id="campoProcessoAnmLink" type="url" placeholder="https://..." />
+            <span class="dica">Opcional — cole a URL aqui</span>
+          </div>
+          <div class="campo">
+            <label for="campoNup">NUP</label>
+            <input id="campoNup" placeholder="Texto ou número do NUP" />
+          </div>
+          <div class="campo campo-link">
+            <label for="campoNupLink">Link do NUP</label>
+            <input id="campoNupLink" type="url" placeholder="https://..." />
+            <span class="dica">Opcional — cole a URL aqui</span>
+          </div>
+          <div class="campo">
+            <label for="campoDemanda">Demanda</label>
+            <input id="campoDemanda" placeholder="Descrição da demanda" />
+          </div>
+          <div class="campo campo-link">
+            <label for="campoDemandaLink">Link da Demanda</label>
+            <input id="campoDemandaLink" type="url" placeholder="https://..." />
+            <span class="dica">Opcional — cole a URL aqui</span>
+          </div>
+          <div class="campo">
+            <label for="campoStatus">Status</label>
+            <input id="campoStatus" />
+          </div>
+          <div class="modal-botoes">
+            <button type="button" id="btnCancelar" class="btn-cancelar">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primario">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script>
       const API =
@@ -75,6 +298,26 @@
         "status",
       ];
 
+      // Colunas que aceitam link cadastrado na página.
+      const COLUNAS_COM_LINK = {
+        processoAnm: "processoAnmLink",
+        nup: "nupLink",
+        demanda: "demandaLink",
+      };
+
+      let registros = [];
+
+      function ehUrl(valor) {
+        return /^https?:\/\/\S+$/i.test(String(valor || "").trim());
+      }
+
+      function normalizarUrl(url) {
+        const valor = String(url || "").trim();
+        if (!valor) return "";
+        if (/^https?:\/\//i.test(valor)) return valor;
+        return "https://" + valor;
+      }
+
       function escaparHtml(valor) {
         if (valor === null || valor === undefined) return "";
         return String(valor)
@@ -85,14 +328,86 @@
           .replace(/'/g, "&#39;");
       }
 
+      // Renderiza texto + link (quando houver) como link clicável.
+      function renderizarCelula(item, coluna) {
+        const texto =
+          item[coluna] === null || item[coluna] === undefined
+            ? ""
+            : String(item[coluna]).trim();
+        const chaveLink = COLUNAS_COM_LINK[coluna];
+        const link = chaveLink ? String(item[chaveLink] || "").trim() : "";
+        const url = link || (ehUrl(texto) ? texto : "");
+
+        if (url) {
+          const rotulo = link && texto ? texto : "Abrir link";
+          return `<a href="${escaparHtml(url)}" target="_blank" rel="noopener">${escaparHtml(rotulo)}</a>`;
+        }
+
+        return escaparHtml(texto);
+      }
+
+      function ordenarAlfabeticamente(lista) {
+        return [...lista].sort((a, b) =>
+          String(a.cliente || "").localeCompare(String(b.cliente || ""), "pt-BR", {
+            sensitivity: "base",
+          })
+        );
+      }
+
       function definirMensagem(texto, ehErro = false) {
         const mensagem = document.getElementById("mensagem");
         mensagem.textContent = texto;
         mensagem.classList.toggle("erro", ehErro);
       }
 
-      async function carregarDados() {
+      function renderizarTabela() {
         const tbody = document.querySelector("#tabela tbody");
+        const termo = document
+          .getElementById("busca")
+          .value.trim()
+          .toLowerCase();
+
+        const visiveis = ordenarAlfabeticamente(registros).filter((item) => {
+          if (!termo) return true;
+          return COLUNAS.some((coluna) => {
+            const chaveLink = COLUNAS_COM_LINK[coluna];
+            const link = chaveLink ? item[chaveLink] : "";
+            return (
+              String(item[coluna] || "").toLowerCase().includes(termo) ||
+              String(link || "").toLowerCase().includes(termo)
+            );
+          });
+        });
+
+        tbody.innerHTML = visiveis
+          .map(
+            (item) => `
+              <tr>
+                ${COLUNAS.map(
+                  (coluna) => `<td>${renderizarCelula(item, coluna)}</td>`
+                ).join("")}
+                <td class="acoes">
+                  <button class="btn-editar" data-id="${escaparHtml(
+                    item.id
+                  )}">Editar</button>
+                  <button class="btn-excluir" data-id="${escaparHtml(
+                    item.id
+                  )}">Excluir</button>
+                </td>
+              </tr>`
+          )
+          .join("");
+
+        if (!registros.length) {
+          definirMensagem("Nenhum registro encontrado.");
+        } else if (!visiveis.length) {
+          definirMensagem("Nenhum registro corresponde à busca.");
+        } else {
+          definirMensagem("");
+        }
+      }
+
+      async function carregarDados() {
         definirMensagem("Carregando dados...");
 
         try {
@@ -104,53 +419,195 @@
 
           const json = await resposta.json();
 
-          // A API pode responder com um array puro ou um objeto
-          // no formato { sucesso, dados, mensagem } / { erro }.
           if (json && json.sucesso === false) {
             throw new Error(json.mensagem || "A API retornou um erro.");
           }
-
           if (json && json.erro) {
             throw new Error(json.erro);
           }
 
-          const dados = Array.isArray(json)
+          registros = Array.isArray(json)
             ? json
             : Array.isArray(json && json.dados)
             ? json.dados
             : null;
 
-          if (!dados) {
+          if (!registros) {
             throw new Error("Resposta da API em formato inesperado.");
           }
 
-          const linhas = dados
-            .map(
-              (item) => `
-                <tr>
-                  ${COLUNAS.map(
-                    (coluna) => `<td>${escaparHtml(item[coluna])}</td>`
-                  ).join("")}
-                </tr>`
-            )
-            .join("");
-
-          tbody.innerHTML = linhas;
-          definirMensagem(
-            dados.length ? "" : "Nenhum registro encontrado."
-          );
+          renderizarTabela();
         } catch (erro) {
-          tbody.innerHTML = "";
+          registros = [];
+          document.querySelector("#tabela tbody").innerHTML = "";
 
           const mensagemErro =
             erro instanceof TypeError
-              ? "Não foi possível conectar à API. Verifique a conexão e se a implantação do Apps Script está com acesso para \"Qualquer pessoa\"."
+              ? 'Não foi possível conectar à API. Verifique a conexão e se a implantação do Apps Script está com acesso para "Qualquer pessoa".'
               : `Não foi possível carregar os dados: ${erro.message}`;
 
           definirMensagem(mensagemErro, true);
           console.error("Falha ao carregar dados:", erro);
         }
       }
+
+      // ===== Envio (inserir / atualizar / excluir) =====
+      async function enviarAcao(payload) {
+        const resposta = await fetch(API, {
+          method: "POST",
+          // text/plain evita o preflight CORS, que o Apps Script não trata.
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!resposta.ok) {
+          throw new Error(`Erro HTTP ${resposta.status}`);
+        }
+
+        const json = await resposta.json();
+        if (json && json.erro) {
+          throw new Error(json.erro);
+        }
+        return json;
+      }
+
+      // ===== Modal =====
+      const modalFundo = document.getElementById("modalFundo");
+      const form = document.getElementById("formRegistro");
+
+      function valorCampoLink(item, coluna, chaveLink) {
+        if (!item) return "";
+        const link = String(item[chaveLink] || "").trim();
+        if (link) return link;
+        const texto = String(item[coluna] || "").trim();
+        return ehUrl(texto) ? texto : "";
+      }
+
+      function valorCampoTexto(item, coluna, chaveLink) {
+        if (!item) return "";
+        const link = String(item[chaveLink] || "").trim();
+        const texto = String(item[coluna] || "").trim();
+        if (link) return texto;
+        return ehUrl(texto) ? "" : texto;
+      }
+
+      function abrirModal(item) {
+        document.getElementById("modalTitulo").textContent = item
+          ? "Editar registro"
+          : "Adicionar registro";
+        document.getElementById("campoId").value = item ? item.id : "";
+        document.getElementById("campoCliente").value = item ? item.cliente || "" : "";
+        document.getElementById("campoCnpjCpf").value = item ? item.cnpjCpf || "" : "";
+        document.getElementById("campoProcessoAnm").value = valorCampoTexto(
+          item,
+          "processoAnm",
+          "processoAnmLink"
+        );
+        document.getElementById("campoProcessoAnmLink").value = valorCampoLink(
+          item,
+          "processoAnm",
+          "processoAnmLink"
+        );
+        document.getElementById("campoNup").value = valorCampoTexto(
+          item,
+          "nup",
+          "nupLink"
+        );
+        document.getElementById("campoNupLink").value = valorCampoLink(
+          item,
+          "nup",
+          "nupLink"
+        );
+        document.getElementById("campoDemanda").value = valorCampoTexto(
+          item,
+          "demanda",
+          "demandaLink"
+        );
+        document.getElementById("campoDemandaLink").value = valorCampoLink(
+          item,
+          "demanda",
+          "demandaLink"
+        );
+        document.getElementById("campoStatus").value = item ? item.status || "" : "";
+        modalFundo.classList.add("aberto");
+      }
+
+      function fecharModal() {
+        modalFundo.classList.remove("aberto");
+        form.reset();
+      }
+
+      document
+        .getElementById("btnAdicionar")
+        .addEventListener("click", () => abrirModal(null));
+      document.getElementById("btnCancelar").addEventListener("click", fecharModal);
+      modalFundo.addEventListener("click", (e) => {
+        if (e.target === modalFundo) fecharModal();
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("campoId").value;
+        const cliente = {
+          cliente: document.getElementById("campoCliente").value.trim(),
+          cnpjCpf: document.getElementById("campoCnpjCpf").value.trim(),
+          processoAnm: document.getElementById("campoProcessoAnm").value.trim(),
+          processoAnmLink: normalizarUrl(
+            document.getElementById("campoProcessoAnmLink").value
+          ),
+          nup: document.getElementById("campoNup").value.trim(),
+          nupLink: normalizarUrl(document.getElementById("campoNupLink").value),
+          demanda: document.getElementById("campoDemanda").value.trim(),
+          demandaLink: normalizarUrl(
+            document.getElementById("campoDemandaLink").value
+          ),
+          status: document.getElementById("campoStatus").value.trim(),
+        };
+
+        definirMensagem("Salvando...");
+        try {
+          if (id) {
+            await enviarAcao({ acao: "atualizar", cliente: { id, ...cliente } });
+          } else {
+            await enviarAcao({ acao: "inserir", cliente });
+          }
+          fecharModal();
+          await carregarDados();
+        } catch (erro) {
+          definirMensagem(`Não foi possível salvar: ${erro.message}`, true);
+          console.error("Falha ao salvar:", erro);
+        }
+      });
+
+      // ===== Ações na tabela (editar / excluir) =====
+      document
+        .querySelector("#tabela tbody")
+        .addEventListener("click", async (e) => {
+          const id = e.target.getAttribute("data-id");
+          if (!id) return;
+
+          if (e.target.classList.contains("btn-editar")) {
+            const item = registros.find((r) => String(r.id) === String(id));
+            if (item) abrirModal(item);
+          } else if (e.target.classList.contains("btn-excluir")) {
+            if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+            definirMensagem("Excluindo...");
+            try {
+              await enviarAcao({ acao: "excluir", id });
+              await carregarDados();
+            } catch (erro) {
+              definirMensagem(
+                `Não foi possível excluir: ${erro.message}`,
+                true
+              );
+              console.error("Falha ao excluir:", erro);
+            }
+          }
+        });
+
+      document
+        .getElementById("busca")
+        .addEventListener("input", renderizarTabela);
 
       carregarDados();
     </script>

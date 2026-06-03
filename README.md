@@ -12,7 +12,3 @@ A aplicação (`index.html`) busca os dados de uma API publicada no Google Apps 
 - NUP
 - Demanda
 - Status
-
-## Como usar
-
-Basta abrir o arquivo `index.html` em um navegador. Os dados são carregados automaticamente a partir da API configurada na constante `API` dentro do arquivo.
