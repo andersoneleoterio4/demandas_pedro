@@ -249,36 +249,38 @@
 
     <div class="conteudo">
       <div class="conteudo-principal">
-    <h2>CONTROLE DE DEMANDAS</h2>
+        <h2>CONTROLE DE DEMANDAS</h2>
 
-    <div class="barra">
-      <button id="btnAdicionar" class="btn-primario">+ Adicionar registro</button>
-      <input id="busca" type="search" placeholder="Buscar..." />
-    </div>
+        <div class="barra">
+          <button id="btnAdicionar" class="btn-primario">
+            + Adicionar registro
+          </button>
+          <input id="busca" type="search" placeholder="Buscar..." />
+        </div>
 
-    <div class="tabela-wrapper">
-      <table id="tabela">
-        <thead>
-          <tr>
-            <th>Cliente</th>
-            <th>CNPJ/CPF</th>
-            <th>Processo ANM</th>
-            <th>NUP</th>
-            <th>Demanda</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
+        <div class="tabela-wrapper">
+          <table id="tabela">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>CNPJ/CPF</th>
+                <th>Processo ANM</th>
+                <th>NUP</th>
+                <th>Demanda</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
 
-        <tbody></tbody>
-      </table>
-    </div>
+            <tbody></tbody>
+          </table>
+        </div>
 
-    <p id="mensagem"></p>
+        <p id="mensagem"></p>
       </div>
 
       <footer class="rodape">
-        Desenvolvido por Anderson Eleotério da Costa;
+        Desenvolvido por Anderson Eleotério da Costa
       </footer>
     </div>
 
@@ -298,11 +300,18 @@
           </div>
           <div class="campo">
             <label for="campoProcessoAnm">Processo ANM</label>
-            <input id="campoProcessoAnm" placeholder="Texto ou número do processo" />
+            <input
+              id="campoProcessoAnm"
+              placeholder="Texto ou número do processo"
+            />
           </div>
           <div class="campo campo-link">
             <label for="campoProcessoAnmLink">Link do Processo ANM</label>
-            <input id="campoProcessoAnmLink" type="url" placeholder="https://..." />
+            <input
+              id="campoProcessoAnmLink"
+              type="url"
+              placeholder="https://..."
+            />
             <span class="dica">Opcional — cole a URL aqui</span>
           </div>
           <div class="campo">
@@ -400,9 +409,13 @@
 
       function ordenarAlfabeticamente(lista) {
         return [...lista].sort((a, b) =>
-          String(a.cliente || "").localeCompare(String(b.cliente || ""), "pt-BR", {
-            sensitivity: "base",
-          })
+          String(a.cliente || "").localeCompare(
+            String(b.cliente || ""),
+            "pt-BR",
+            {
+              sensitivity: "base",
+            },
+          ),
         );
       }
 
@@ -425,8 +438,12 @@
             const chaveLink = COLUNAS_COM_LINK[coluna];
             const link = chaveLink ? item[chaveLink] : "";
             return (
-              String(item[coluna] || "").toLowerCase().includes(termo) ||
-              String(link || "").toLowerCase().includes(termo)
+              String(item[coluna] || "")
+                .toLowerCase()
+                .includes(termo) ||
+              String(link || "")
+                .toLowerCase()
+                .includes(termo)
             );
           });
         });
@@ -436,17 +453,17 @@
             (item) => `
               <tr>
                 ${COLUNAS.map(
-                  (coluna) => `<td>${renderizarCelula(item, coluna)}</td>`
+                  (coluna) => `<td>${renderizarCelula(item, coluna)}</td>`,
                 ).join("")}
                 <td class="acoes">
                   <button class="btn-editar" data-id="${escaparHtml(
-                    item.id
+                    item.id,
                   )}">Editar</button>
                   <button class="btn-excluir" data-id="${escaparHtml(
-                    item.id
+                    item.id,
                   )}">Excluir</button>
                 </td>
-              </tr>`
+              </tr>`,
           )
           .join("");
 
@@ -481,8 +498,8 @@
           registros = Array.isArray(json)
             ? json
             : Array.isArray(json && json.dados)
-            ? json.dados
-            : null;
+              ? json.dados
+              : null;
 
           if (!registros) {
             throw new Error("Resposta da API em formato inesperado.");
@@ -525,7 +542,9 @@
         }
 
         if (json && json.sucesso === false) {
-          throw new Error(json.mensagem || json.erro || "A API retornou um erro.");
+          throw new Error(
+            json.mensagem || json.erro || "A API retornou um erro.",
+          );
         }
         if (json && json.erro) {
           throw new Error(json.erro);
@@ -559,39 +578,45 @@
           ? "Editar registro"
           : "Adicionar registro";
         document.getElementById("campoId").value = item ? item.id : "";
-        document.getElementById("campoCliente").value = item ? item.cliente || "" : "";
-        document.getElementById("campoCnpjCpf").value = item ? item.cnpjCpf || "" : "";
+        document.getElementById("campoCliente").value = item
+          ? item.cliente || ""
+          : "";
+        document.getElementById("campoCnpjCpf").value = item
+          ? item.cnpjCpf || ""
+          : "";
         document.getElementById("campoProcessoAnm").value = valorCampoTexto(
           item,
           "processoAnm",
-          "processoAnmLink"
+          "processoAnmLink",
         );
         document.getElementById("campoProcessoAnmLink").value = valorCampoLink(
           item,
           "processoAnm",
-          "processoAnmLink"
+          "processoAnmLink",
         );
         document.getElementById("campoNup").value = valorCampoTexto(
           item,
           "nup",
-          "nupLink"
+          "nupLink",
         );
         document.getElementById("campoNupLink").value = valorCampoLink(
           item,
           "nup",
-          "nupLink"
+          "nupLink",
         );
         document.getElementById("campoDemanda").value = valorCampoTexto(
           item,
           "demanda",
-          "demandaLink"
+          "demandaLink",
         );
         document.getElementById("campoDemandaLink").value = valorCampoLink(
           item,
           "demanda",
-          "demandaLink"
+          "demandaLink",
         );
-        document.getElementById("campoStatus").value = item ? item.status || "" : "";
+        document.getElementById("campoStatus").value = item
+          ? item.status || ""
+          : "";
         modalFundo.classList.add("aberto");
       }
 
@@ -603,7 +628,9 @@
       document
         .getElementById("btnAdicionar")
         .addEventListener("click", () => abrirModal(null));
-      document.getElementById("btnCancelar").addEventListener("click", fecharModal);
+      document
+        .getElementById("btnCancelar")
+        .addEventListener("click", fecharModal);
       modalFundo.addEventListener("click", (e) => {
         if (e.target === modalFundo) fecharModal();
       });
@@ -616,13 +643,13 @@
           cnpjCpf: document.getElementById("campoCnpjCpf").value.trim(),
           processoAnm: document.getElementById("campoProcessoAnm").value.trim(),
           processoAnmLink: normalizarUrl(
-            document.getElementById("campoProcessoAnmLink").value
+            document.getElementById("campoProcessoAnmLink").value,
           ),
           nup: document.getElementById("campoNup").value.trim(),
           nupLink: normalizarUrl(document.getElementById("campoNupLink").value),
           demanda: document.getElementById("campoDemanda").value.trim(),
           demandaLink: normalizarUrl(
-            document.getElementById("campoDemandaLink").value
+            document.getElementById("campoDemandaLink").value,
           ),
           status: document.getElementById("campoStatus").value.trim(),
         };
@@ -653,7 +680,8 @@
             const item = registros.find((r) => String(r.id) === String(id));
             if (item) abrirModal(item);
           } else if (e.target.classList.contains("btn-excluir")) {
-            if (!confirm("Tem certeza que deseja excluir este registro?")) return;
+            if (!confirm("Tem certeza que deseja excluir este registro?"))
+              return;
             definirMensagem("Excluindo...");
             try {
               await enviarAcao({ acao: "excluir", dados: { id } });
@@ -661,7 +689,7 @@
             } catch (erro) {
               definirMensagem(
                 `Não foi possível excluir: ${erro.message}`,
-                true
+                true,
               );
               console.error("Falha ao excluir:", erro);
             }
